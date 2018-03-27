@@ -22,8 +22,31 @@ module.exports = {
     postModel
       .createByHash(post)
       .then(() => {
-        console.log('发布文章成功');
-        res.json({ status: 'ok', result: '发布文章成功' });
+        res.apiSuccess('发布文章成功');
+      })
+      .catch(err => {
+        console.error(err);
+        next(err);
+      });
+  },
+  getHashPostBySlug(req, res, next) {
+    const { slug } = req.params;
+    postModel
+      .getHashPostBySlug(slug)
+      .then(post => {
+        res.apiSuccess(post);
+      })
+      .catch(err => {
+        console.error(err);
+        next(err);
+      });
+  },
+  updateHashPostSlugById(req, res, next) {
+    const { id, slug } = req.body;
+    postModel
+      .updateHashPostSlugById(slug, id)
+      .then(() => {
+        res.apiSuccess('更新文章slug成功');
       })
       .catch(err => {
         console.error(err);
