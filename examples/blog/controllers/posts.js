@@ -15,5 +15,19 @@ module.exports = {
       console.log('发布文章成功');
       res.json({ status: 'ok', result: '发布文章成功' });
     });
+  },
+  createByHash(req, res, next) {
+    const post = req.body;
+    console.log(post);
+    postModel
+      .createByHash(post)
+      .then(() => {
+        console.log('发布文章成功');
+        res.json({ status: 'ok', result: '发布文章成功' });
+      })
+      .catch(err => {
+        console.error(err);
+        next(err);
+      });
   }
 };
