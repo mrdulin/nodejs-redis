@@ -30,7 +30,14 @@ module.exports = client => {
       .then(([isSlugAvailable, postId]) => {
         if (isSlugAvailable) {
           const post = Object.assign({}, data, { id: postId });
-          return client.hmsetAsync(`post:${postId}`, post);
+
+          return client
+            .multi()
+            .hmset(`post:${postId}`, post)
+            .lpush('posts:list', postId)
+            .execAsync();
+
+          // return client.hmsetAsync(`post:${postId}`, post);
         }
         const err = new Error('文章slug已存在');
         err.errorCode = 10000;
@@ -92,11 +99,24 @@ module.exports = client => {
       });
   }
 
+  function deleteById(id) {
+    return client.hgetAsync(`post:${id}`, 'slug').then(slug => {
+      console.log(slug);
+      return client
+        .multi()
+        .lrem('posts:list', 1, id)
+        .hdel('slug.to.id', slug)
+        .del(`post:${id}`)
+        .execAsync();
+    });
+  }
+
   return {
     create,
     createByHash,
     getPostById,
     getHashPostBySlug,
-    updateHashPostSlugById
+    updateHashPostSlugById,
+    deleteById
   };
 };

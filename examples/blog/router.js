@@ -6,4 +6,5 @@ module.exports = function router(app) {
   app.post('/createByHash', posts.createByHash);
   app.get('/post/:slug', posts.getHashPostBySlug);
   app.post('/updateSlugById', posts.updateHashPostSlugById);
+  app.post('/delete', posts.deleteById);
 };

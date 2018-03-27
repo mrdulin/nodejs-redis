@@ -52,5 +52,17 @@ module.exports = {
         console.error(err);
         next(err);
       });
+  },
+  deleteById(req, res, next) {
+    const { id } = req.body;
+    postModel
+      .deleteById(id)
+      .then(() => {
+        res.apiSuccess('删除成功');
+      })
+      .catch(err => {
+        console.error(err);
+        next(err);
+      });
   }
 };
