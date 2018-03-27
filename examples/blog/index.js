@@ -1,31 +1,16 @@
-const redis = require('redis');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-const postModelFactory = require('./model/post');
+const router = require('./router');
 
-const port = 6379;
-const host = '127.0.0.1';
-const client = redis.createClient(port, host);
+const app = express();
 
-const postModel = postModelFactory(client);
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
-client.on('error', err => {
-  console.log(`Error ${err}`);
-});
+router(app);
 
-function quit() {
-  client.quit(() => {
-    console.log('Redis client quit');
-  });
-}
-
-const post = {
-  title: 'redis入门指南',
-  content: 'redis入门指南redis入门指南redis入门指南redis入门指南redis入门指南redis入门指南',
-  author: 'mrdulin',
-  time: Date.now()
-};
-postModel.create(post, err => {
-  if (err) console.error(err);
-  console.log('发布文章成功');
-  quit();
+const port = 3000;
+app.listen(port, () => {
+  console.log(`Server is listening on http://localhost:${port}`);
 });
