@@ -1,12 +1,24 @@
 module.exports = client => {
+  function getPostsByPage(page = 1, pageSize = 10) {
+    const start = (page - 1) * pageSize;
+    const end = page * pageSize - 1;
+    return client.lrangeAsync('posts:list', start, end).then(postIds => {
+      const multi = client.multi();
+      postIds.forEach(postId => {
+        multi.hgetall(`post:${postId}`);
+      });
+      return multi.execAsync();
+    });
+  }
+
   /**
    * 创建文章, 使用redis字符串数据类型存储
    *
    * post:count存文章id
    * post:${postId}:data存data
    *
-   * @param {*} data {title: '标题', 'content': '内容', 'author': '作者', time: '发布时间'}
-   * @param {*} callback
+   * @param {object} data {title: '标题', 'content': '内容', 'author': '作者', time: '发布时间'}
+   * @param {function} callback
    */
   function create(data, callback) {
     client.incr('posts:count', (err, postId) => {
@@ -19,7 +31,7 @@ module.exports = client => {
   /**
    * 创建文章，使用redis散列数据类型存储
    *
-   * @param {*} data {title: '标题', 'content': '内容', 'author': '作者', time: '发布时间', slug: '文章缩略名'}
+   * @param {object} data {title: '标题', 'content': '内容', 'author': '作者', time: '发布时间', slug: '文章缩略名'}
    */
   function createByHash(data) {
     return client
@@ -58,7 +70,7 @@ module.exports = client => {
   /**
    * 通过缩略名slug获取post
    *
-   * @param {*} slug 缩略名
+   * @param {string} slug 缩略名
    */
   function getHashPostBySlug(slug) {
     return client.hgetAsync('slug.to.id', slug).then(postId => {
@@ -74,8 +86,8 @@ module.exports = client => {
   /**
    * 通过文章id更新文章slug
    *
-   * @param {*} slug 缩略名
-   * @param {*} id 文章id
+   * @param {string} slug 缩略名
+   * @param {string} id 文章id
    */
   function updateHashPostSlugById(slug, id) {
     console.log(slug, id);
@@ -91,14 +103,19 @@ module.exports = client => {
       })
       .then(post => {
         const oldSlug = post.slug;
-        return Promise.all([client.hsetAsync(`post:${id}`, 'slug', slug), oldSlug]);
-      })
-      .then(([status, oldSlug]) => {
-        console.log('oldSlug', oldSlug);
-        return client.hdelAsync('slug.to.id', oldSlug);
+        return client
+          .multi()
+          .hset(`post:${id}`, 'slug', slug)
+          .hdel('slug.to.id', oldSlug)
+          .execAsync();
       });
   }
 
+  /**
+   * 通过id删除post
+   *
+   * @param {string} id
+   */
   function deleteById(id) {
     return client.hgetAsync(`post:${id}`, 'slug').then(slug => {
       console.log(slug);
@@ -117,6 +134,7 @@ module.exports = client => {
     getPostById,
     getHashPostBySlug,
     updateHashPostSlugById,
-    deleteById
+    deleteById,
+    getPostsByPage
   };
 };

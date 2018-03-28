@@ -4,8 +4,17 @@ const redisClient = require('../redis');
 const postModel = postModelFactory(redisClient);
 
 module.exports = {
-  index: (req, res) => {
-    res.json({ status: 'ok', result: [] });
+  index: (req, res, next) => {
+    const { page, pageSize } = req.query;
+    postModel
+      .getPostsByPage(page, pageSize)
+      .then(posts => {
+        res.apiSuccess({ posts });
+      })
+      .catch(err => {
+        console.error(err);
+        next(err);
+      });
   },
   create: (req, res) => {
     const post = req.body;

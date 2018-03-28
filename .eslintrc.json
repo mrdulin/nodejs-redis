@@ -7,6 +7,7 @@
     "comma-dangle": ["error", "never"],
     "max-len": "off",
     "arrow-body-style": "off",
-    "no-unused-vars": "off"
+    "no-unused-vars": "off",
+    "no-mixed-operators": "off"
   }
 }
