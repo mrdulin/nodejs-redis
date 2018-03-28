@@ -73,5 +73,17 @@ module.exports = {
         console.error(err);
         next(err);
       });
+  },
+  getHotPosts(req, res, next) {
+    const { count } = req.body;
+    postModel
+      .getHotPosts(Number.parseInt(count, 10))
+      .then(posts => {
+        res.apiSuccess({ posts });
+      })
+      .catch(err => {
+        console.error(err);
+        next(err);
+      });
   }
 };

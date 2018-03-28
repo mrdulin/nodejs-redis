@@ -1,4 +1,41 @@
 module.exports = client => {
+  /**
+   * 获取热门文章
+   * @param {Number} count 热门文章数量，默认1
+   */
+  function getHotPosts(count = 1) {
+    return client
+      .zrevrangeAsync('posts:page.view', 0, -1, 'WITHSCORES')
+      .then(results => {
+        const groups = [];
+        for (let i = 0; i < results.length; i += 2) {
+          groups.push(results.slice(i, i + 2));
+        }
+
+        const multi = client.multi();
+        const pageViews = [];
+        groups.slice(0, count).forEach(group => {
+          const postId = group[0];
+          pageViews.push(group[1]);
+          multi.hgetall(`post:${postId}`);
+        });
+        return Promise.all([multi.execAsync(), pageViews]);
+      })
+      .then(([posts, pageViews]) => {
+        return posts.map((post, idx) => {
+          const newPost = { ...post };
+          newPost.view = pageViews[idx];
+          return newPost;
+        });
+      });
+  }
+
+  /**
+   * 分页查询文章列表
+   *
+   * @param {Number} page 当前页
+   * @param {Number} pageSize 每页数量
+   */
   function getPostsByPage(page = 1, pageSize = 10) {
     const start = (page - 1) * pageSize;
     const end = page * pageSize - 1;
@@ -68,13 +105,21 @@ module.exports = client => {
   }
 
   /**
-   * 通过缩略名slug获取post
+   * 通过缩略名slug获取post，文章访问量+1
    *
    * @param {string} slug 缩略名
    */
   function getHashPostBySlug(slug) {
     return client.hgetAsync('slug.to.id', slug).then(postId => {
       if (postId) {
+        client
+          .zincrbyAsync('posts:page.view', 1, postId)
+          .then(() => {
+            console.log('更新访问量成功');
+          })
+          .catch(err => {
+            console.error(`更新访问量失败, ${err}`);
+          });
         return client.hgetallAsync(`post:${postId}`);
       }
       const err = new Error('文章不存在');
@@ -135,6 +180,7 @@ module.exports = client => {
     getHashPostBySlug,
     updateHashPostSlugById,
     deleteById,
-    getPostsByPage
+    getPostsByPage,
+    getHotPosts
   };
 };
