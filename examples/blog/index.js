@@ -8,9 +8,14 @@ const middlewares = require('./middlewares');
 
 const app = express();
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(middlewares.extendApiOutput);
+app.use(
+  bodyParser.json(),
+  bodyParser.urlencoded({ extended: false }),
+  middlewares.extendApiOutput,
+  middlewares.rateLimiter({
+    limit: 100
+  })
+);
 
 router(app);
 
