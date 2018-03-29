@@ -1,8 +1,6 @@
 const redis = require('redis');
 
-// const transaction = require('./transaction');
-// const getSet = require('./get-set');
-const incr = require('../utils/incr');
+const getSet = require('./get-set');
 
 const port = 6379;
 const host = '127.0.0.1';
@@ -19,7 +17,4 @@ function quit() {
   });
 }
 
-// transaction(client, quit);
-// getSet(client, quit);
-
-incr(client, quit)('pageNo');
+getSet(client, quit);
