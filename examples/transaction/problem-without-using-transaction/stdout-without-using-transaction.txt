@@ -1,0 +1,9 @@
+notrans +1 = 1
+notrans +1 = 2
+notrans +1 = 3
+notrans -1 = 2
++1 -1成功
+notrans -1 = 1
++1 -1成功
+notrans -1 = 0
++1 -1成功
