@@ -1,6 +1,6 @@
 // 事务
 
-const redis = require('./redis');
+const redis = require('../redis');
 
 // 测试watch命令
 // watch命令： 监控一个或多个键，一旦其中有一个键被修改（或删除）,之后的事务就不会执行。

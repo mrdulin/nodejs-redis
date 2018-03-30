@@ -9,5 +9,9 @@
     "arrow-body-style": "off",
     "no-unused-vars": "off",
     "no-mixed-operators": "off"
+  },
+  "env": {
+    "node": true,
+    "mocha": true
   }
 }
