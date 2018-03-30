@@ -14,32 +14,43 @@ const redis = require('./redis');
  *
  * 时间复杂度O(N)
  *
- * @param {String} key set类型的key
- * @param {Number} count 插入的元素个数
+ * @author dulin
+ * @param {number} [count=1000 * 1000] 插入的元素个数，默认值=1000 * 1000
+ * @param {string} [key='huge:set']  set类型的key，默认值='huge:set'
+ * @param {number} [elementCount=0] 元素总个数，默认值=0
+ * @returns
  */
-function mockData(count = 1000 * 1000, key = 'huge:set') {
+function mockData(count = 1000 * 1000, key = 'huge:set', elementCount = 0) {
   const elements = [];
   const bulkLength = 1024 * 1023;
   const len = count > bulkLength ? bulkLength : count;
 
-  console.log(count, len);
   for (let i = count; i > count - len; i -= 1) {
     elements.push(i);
   }
   return redis.saddAsync(key, elements).then(res => {
+    let nextElementCount;
+    if (!elementCount) {
+      nextElementCount = res;
+    } else {
+      nextElementCount = elementCount + res;
+    }
     if (count > bulkLength) {
       console.log('add data successfully. continue...');
-      return mockData(count - bulkLength);
+      return mockData(count - bulkLength, key, nextElementCount);
     }
-    return Promise.resolve(res);
+    return Promise.resolve(nextElementCount);
   });
 }
 
 /**
+ *
  * 分批删除mock的数据
  *
- * @param {Number} size 每次删除的数据个数
- * @param {String} key set类型的key
+ * @author dulin
+ * @param {number} [size=500] 每次删除的数据个数，默认值=500
+ * @param {string} [key='huge:set'] set类型的key，默认值='huge:set'
+ * @returns
  */
 function delSet(size = 500, key = 'huge:set') {
   return redis.scardAsync(key).then(count => {
@@ -55,21 +66,5 @@ function delSet(size = 500, key = 'huge:set') {
   });
 }
 
-// 下面两个函数不要同时执行
-delSet()
-  .then(result => {
-    console.log('delete huge:set successfully');
-  })
-  .catch(console.error)
-  .finally(() => redis.quit());
-
-// console.time('mock data');
-// mockData(1000 * 1000 * 5)
-//   .then(result => {
-//     console.log('mock data process is compeleted', result);
-//     console.timeEnd('mock data');
-//   })
-//   .catch(err => {
-//     console.error(err);
-//   })
-//   .finally(() => redis.quit());
+exports.mockData = mockData;
+exports.delSet = delSet;
