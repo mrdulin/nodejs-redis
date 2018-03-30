@@ -13,9 +13,4 @@ function MHGETALL(keys) {
   return multi.execAsync();
 }
 
-MHGETALL(['post:1000', 'post:1001', 'post:1002'])
-  .then(results => {
-    console.log('results: ', results);
-    redis.quit();
-  })
-  .catch(console.error);
+module.exports = MHGETALL;
