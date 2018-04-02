@@ -16,13 +16,13 @@ module.exports = {
         next(err);
       });
   },
-  create: (req, res) => {
+  create: (req, res, next) => {
     const post = req.body;
     console.log(post);
     postModel.create(post, err => {
-      if (err) console.error(err);
+      if (err) return next(err);
       console.log('发布文章成功');
-      res.json({ status: 'ok', result: '发布文章成功' });
+      return res.json({ status: 'ok', result: '发布文章成功' });
     });
   },
   createByHash(req, res, next) {
