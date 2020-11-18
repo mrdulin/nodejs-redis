@@ -8,10 +8,10 @@ module.exports = {
     const { page, pageSize } = req.query;
     postModel
       .getPostsByPage(page, pageSize)
-      .then(posts => {
+      .then((posts) => {
         res.apiSuccess({ posts });
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         next(err);
       });
@@ -19,7 +19,7 @@ module.exports = {
   create: (req, res, next) => {
     const post = req.body;
     console.log(post);
-    postModel.create(post, err => {
+    postModel.create(post, (err) => {
       if (err) return next(err);
       console.log('发布文章成功');
       return res.json({ status: 'ok', result: '发布文章成功' });
@@ -33,7 +33,7 @@ module.exports = {
       .then(() => {
         res.apiSuccess('发布文章成功');
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         next(err);
       });
@@ -42,10 +42,10 @@ module.exports = {
     const { slug } = req.params;
     postModel
       .getHashPostBySlug(slug)
-      .then(post => {
+      .then((post) => {
         res.apiSuccess(post);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         next(err);
       });
@@ -57,7 +57,7 @@ module.exports = {
       .then(() => {
         res.apiSuccess('更新文章slug成功');
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         next(err);
       });
@@ -69,7 +69,7 @@ module.exports = {
       .then(() => {
         res.apiSuccess('删除成功');
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         next(err);
       });
@@ -78,12 +78,12 @@ module.exports = {
     const { count } = req.body;
     postModel
       .getHotPosts(Number.parseInt(count, 10))
-      .then(posts => {
+      .then((posts) => {
         res.apiSuccess({ posts });
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         next(err);
       });
-  }
+  },
 };

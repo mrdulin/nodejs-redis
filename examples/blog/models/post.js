@@ -1,4 +1,4 @@
-module.exports = client => {
+module.exports = (client) => {
   /**
    * 获取热门文章
    * @param {Number} count 热门文章数量，默认1
@@ -6,7 +6,7 @@ module.exports = client => {
   function getHotPosts(count = 1) {
     return client
       .zrevrangeAsync('posts:page.view', 0, -1, 'WITHSCORES')
-      .then(results => {
+      .then((results) => {
         const groups = [];
         for (let i = 0; i < results.length; i += 2) {
           groups.push(results.slice(i, i + 2));
@@ -14,7 +14,7 @@ module.exports = client => {
 
         const multi = client.multi();
         const pageViews = [];
-        groups.slice(0, count).forEach(group => {
+        groups.slice(0, count).forEach((group) => {
           const postId = group[0];
           pageViews.push(group[1]);
           multi.hgetall(`post:${postId}`);
@@ -39,9 +39,9 @@ module.exports = client => {
   function getPostsByPage(page = 1, pageSize = 10) {
     const start = (page - 1) * pageSize;
     const end = page * pageSize - 1;
-    return client.lrangeAsync('posts:list', start, end).then(postIds => {
+    return client.lrangeAsync('posts:list', start, end).then((postIds) => {
       const multi = client.multi();
-      postIds.forEach(postId => {
+      postIds.forEach((postId) => {
         multi.hgetall(`post:${postId}`);
       });
       return multi.execAsync();
@@ -73,18 +73,14 @@ module.exports = client => {
   function createByHash(data) {
     return client
       .incrAsync('posts:count')
-      .then(postId => {
+      .then((postId) => {
         return Promise.all([client.hsetnxAsync('slug.to.id', data.slug, postId), postId]);
       })
       .then(([isSlugAvailable, postId]) => {
         if (isSlugAvailable) {
           const post = Object.assign({}, data, { id: postId });
 
-          return client
-            .multi()
-            .hmset(`post:${postId}`, post)
-            .lpush('posts:list', postId)
-            .execAsync();
+          return client.multi().hmset(`post:${postId}`, post).lpush('posts:list', postId).execAsync();
 
           // return client.hmsetAsync(`post:${postId}`, post);
         }
@@ -110,14 +106,14 @@ module.exports = client => {
    * @param {string} slug 缩略名
    */
   function getHashPostBySlug(slug) {
-    return client.hgetAsync('slug.to.id', slug).then(postId => {
+    return client.hgetAsync('slug.to.id', slug).then((postId) => {
       if (postId) {
         client
           .zincrbyAsync('posts:page.view', 1, postId)
           .then(() => {
             console.log('更新访问量成功');
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(`更新访问量失败, ${err}`);
           });
         return client.hgetallAsync(`post:${postId}`);
@@ -138,7 +134,7 @@ module.exports = client => {
     console.log(slug, id);
     return client
       .hsetnxAsync('slug.to.id', slug, id)
-      .then(isSlugAvailable => {
+      .then((isSlugAvailable) => {
         if (isSlugAvailable) {
           return client.hgetallAsync(`post:${id}`);
         }
@@ -146,13 +142,9 @@ module.exports = client => {
         err.errorCode = 10002;
         return Promise.reject(err);
       })
-      .then(post => {
+      .then((post) => {
         const oldSlug = post.slug;
-        return client
-          .multi()
-          .hset(`post:${id}`, 'slug', slug)
-          .hdel('slug.to.id', oldSlug)
-          .execAsync();
+        return client.multi().hset(`post:${id}`, 'slug', slug).hdel('slug.to.id', oldSlug).execAsync();
       });
   }
 
@@ -162,14 +154,9 @@ module.exports = client => {
    * @param {string} id
    */
   function deleteById(id) {
-    return client.hgetAsync(`post:${id}`, 'slug').then(slug => {
+    return client.hgetAsync(`post:${id}`, 'slug').then((slug) => {
       console.log(slug);
-      return client
-        .multi()
-        .lrem('posts:list', 1, id)
-        .hdel('slug.to.id', slug)
-        .del(`post:${id}`)
-        .execAsync();
+      return client.multi().lrem('posts:list', 1, id).hdel('slug.to.id', slug).del(`post:${id}`).execAsync();
     });
   }
 
@@ -181,6 +168,6 @@ module.exports = client => {
     updateHashPostSlugById,
     deleteById,
     getPostsByPage,
-    getHotPosts
+    getHotPosts,
   };
 };

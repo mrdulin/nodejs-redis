@@ -4,8 +4,6 @@ const bodyParser = require('body-parser');
 const router = require('./router');
 const middlewares = require('./middlewares');
 
-// console.log('middlewares: ', middlewares);
-
 const app = express();
 
 app.use(
@@ -13,8 +11,8 @@ app.use(
   bodyParser.urlencoded({ extended: false }),
   middlewares.extendApiOutput,
   middlewares.rateLimiter({
-    limit: 100
-  })
+    limit: 100,
+  }),
 );
 
 router(app);
